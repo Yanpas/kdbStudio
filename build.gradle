@@ -18,6 +18,8 @@ dependencies {
     compile group: 'org.netbeans.api', name: 'org-openide-awt', version: 'RELEASE113'
 //    compile group: 'org.jfree', name: 'jfreechart', version: '1.0.13'
     compile group: 'org.jfree', name: 'jfreechart', version: '1.0.14'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
     runtime files ('lib/images.jar')
 }
 
@@ -32,6 +34,17 @@ sourceSets {
             include 'org/netbeans/editor/Bundle*.properties'
         }
     }
+    test {
+        java {
+            srcDirs 'test'
+        }
+        resources {
+            srcDirs 'test'
+        }
+    }
+}
+test {
+    useJUnitPlatform()
 }
 
 application {
