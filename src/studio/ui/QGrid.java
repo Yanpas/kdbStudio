@@ -325,6 +325,14 @@ public class QGrid extends JPanel {
                     popupMenu.show(e.getComponent(),
                             e.getX(), e.getY());
             }
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() != 2) return;
+                K.KBase b = (K.KBase) table.getValueAt(table.getSelectedRow(), table.getSelectedColumn());
+                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(b.toString(false)), null);
+
+            }
         });
     }
 
