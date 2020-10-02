@@ -1041,7 +1041,7 @@ public class K {
                     if (i > 0) builder.append(" ");
                     at(i).format(builder, false);
                 }
-                if (showType) builder.append("h");
+                if (showType) builder.append(typeChar);
             }
             return builder;
         }
