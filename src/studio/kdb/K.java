@@ -85,8 +85,13 @@ public class K {
             this.o = o;
         }
 
-        public Object getObject() {
+        public K.KBase getObject() {
             return o;
+        }
+
+        @Override
+        public StringBuilder format(StringBuilder builder, boolean showType) {
+            return super.format(builder, showType).append(o.toString(showType));
         }
     }
 
@@ -269,7 +274,7 @@ public class K {
             }
 
             boolean isFunction = false;
-            if ((first instanceof Function) || (first instanceof UnaryPrimitive) || (first instanceof BinaryPrimitive)) {
+            if ((first instanceof Function) || (first instanceof UnaryPrimitive) || (first instanceof BinaryPrimitive) || (first instanceof TernaryOperator)) {
                 if (!listProjection) isFunction = true;
             }
 
@@ -487,10 +492,9 @@ public class K {
         public StringBuilder format(StringBuilder builder, boolean showType) {
             builder = super.format(builder, showType);
             if (isNull()) builder.append("0N");
-            else if (j == Integer.MAX_VALUE) builder.append("0W");
-            else if (j == -Integer.MAX_VALUE) builder.append("-0W");
+            else if (j == Long.MAX_VALUE) builder.append("0W");
+            else if (j == -Long.MAX_VALUE) builder.append("-0W");
             else builder.append(j);
-            if (showType) builder.append("j");
             return builder;
         }
 
@@ -553,7 +557,7 @@ public class K {
         @Override
         public StringBuilder format(StringBuilder builder, boolean showType) {
             builder = super.format(builder, showType);
-            if (isNull()) builder.append("0n");
+            if (isNull()) builder.append("0N");
             else if (f == Float.POSITIVE_INFINITY) builder.append("0w");
             else if (f == Float.NEGATIVE_INFINITY) builder.append("-0w");
             else builder.append(Config.getInstance().getNumberFormat().format(f));
@@ -711,10 +715,11 @@ public class K {
         @Override
         public StringBuilder format(StringBuilder builder, boolean showType) {
             builder = super.format(builder, showType);
-            if (isNull()) builder.append("0nz");
-            else if (time == Double.POSITIVE_INFINITY) builder.append("0wz");
-            else if (time == Double.NEGATIVE_INFINITY) builder.append("-0Wz");
+            if (isNull()) builder.append("0N");
+            else if (time == Double.POSITIVE_INFINITY) builder.append("0w");
+            else if (time == Double.NEGATIVE_INFINITY) builder.append("-0w");
             else builder.append(sd("yyyy.MM.dd HH:mm:ss.SSS", toTimestamp()));
+            if (showType) builder.append("z");
             return builder;
         }
 
@@ -854,8 +859,8 @@ public class K {
 
                 builder.append(i2(y / 100)).append(i2(y % 100))
                         .append(".").append(i2(1 + m % 12));
-                if (showType) builder.append("m");
             }
+            if (showType) builder.append("m");
             return builder;
         }
 
@@ -1148,7 +1153,7 @@ public class K {
         }
 
         public KLongVector(int length) {
-            super(long.class, length, "long", "j");
+            super(long.class, length, "long", "");
             type = 7;
         }
 
@@ -1178,7 +1183,7 @@ public class K {
         }
 
         public KDateVector(int length) {
-            super(int.class, length, "date", "d");
+            super(int.class, length, "date", "");
             type = 14;
         }
 
@@ -1439,10 +1444,10 @@ public class K {
         protected StringBuilder formatVector(StringBuilder builder, boolean showType) {
             if (getLength() == 1) builder.append(enlist);
 
-            builder.append("\"");
+            if (showType) builder.append("\"");
             for (int i = 0; i < getLength(); i++)
                 builder.append(Array.getChar(array, i));
-            builder.append("\"");
+            if (showType) builder.append("\"");
             return builder;
         }
     }
