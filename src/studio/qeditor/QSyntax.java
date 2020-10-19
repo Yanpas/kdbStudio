@@ -510,6 +510,7 @@ public class QSyntax extends Syntax
         }
     }
     private static void result(String buffer) {
+        if (buffer.length() == 0) return;
         StringBuilder str = new StringBuilder(encode(buffer));
         for(TokenID token: tokens(buffer)) {
             str.append(",")
