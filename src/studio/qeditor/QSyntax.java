@@ -1,7 +1,6 @@
 package studio.qeditor;
 
 import java.util.*;
-import java.util.jar.JarEntry;
 
 import org.netbeans.editor.Syntax;
 import org.netbeans.editor.TokenID;
