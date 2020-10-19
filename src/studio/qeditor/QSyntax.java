@@ -1,7 +1,8 @@
 package studio.qeditor;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.jar.JarEntry;
+
 import org.netbeans.editor.Syntax;
 import org.netbeans.editor.TokenID;
 
@@ -478,4 +479,83 @@ public class QSyntax extends Syntax
         initMap();
         tokenContextPath=QTokenContext.contextPath;
     }
+
+
+    private static Map<Integer, List<Entry>> entryMap = new HashMap<>();
+    static {
+        for(Entry entry: entries) {
+            List<Entry> list = entryMap.get(entry.state);
+            if (list == null) {
+                list = new ArrayList<>();
+                entryMap.put(entry.state, list);
+            }
+            list.add(entry);
+        }
+    }
+
+    private static String encode(String buffer) {
+        return buffer.replace("\n","\\n")
+                        .replace("\r","\\r")
+                        .replace("\t","\\t");
+    }
+
+    private static List<TokenID> tokens(String buffer) {
+        QSyntax syntax = new QSyntax();
+        syntax.load(null, buffer.toCharArray(), 0, buffer.length(), true, -1);
+        List<TokenID> result = new ArrayList<>();
+        for(;;) {
+            TokenID token = syntax.nextToken();
+            if (token == null) return result;
+            result.add(token);
+        }
+    }
+    private static void result(String buffer) {
+        if (buffer.length() == 0) return;
+        StringBuilder str = new StringBuilder(encode(buffer));
+        for(TokenID token: tokens(buffer)) {
+            str.append(",")
+                    .append(token.getName());
+        }
+        //return str.toString();
+        System.out.println(str.toString());
+    }
+
+    private static void walkStates(int state, Set<Integer> passedStates, String buffer, Character current) {
+        List<Entry> entries = entryMap.get(state);
+        if (entries == null) return;
+        for (Entry entry: entries) {
+            if (current != null && entry.chars.length > 0 && new String(entry.chars).indexOf(current)==-1) {
+                continue;
+            }
+            String newBuffer = buffer + (entry.chars.length > 0 ? (current == null ? entry.chars[0] : current) : "");
+            Character nextChar = null;
+
+            if (entry.action == ACTION_MATCHANDPUTBACK) {
+//                System.out.println(buffer + " <-- " + entry.tokenID.getName()+ " [putback]");
+                result(buffer);
+                newBuffer = buffer;
+                nextChar = current == null ? (entry.chars.length>0 ? entry.chars[0] : null) : current;
+            } else if (entry.action == ACTION_MATCHANDCONSUME) {
+//                System.out.println(newBuffer + " <-- " + entry.tokenID.getName());
+                result(buffer);
+            } else if (entry.action == ACTION_LOOKSLIKE) {
+            } else {
+                throw new IllegalStateException("Unknown action: " + entry.action);
+            }
+
+            if (passedStates.contains(entry.nextState)) continue;
+            passedStates.add(entry.nextState);
+            walkStates(entry.nextState, passedStates, newBuffer, nextChar);
+            passedStates.remove(entry.nextState);
+        }
+    }
+
+    public static void main(String... args) {
+        Set<Integer> passedStates = new HashSet<>();
+        passedStates.add(INIT);
+        walkStates(INIT, passedStates, "", null);
+
+    }
+
+
 }
