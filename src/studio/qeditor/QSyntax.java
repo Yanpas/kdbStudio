@@ -481,6 +481,7 @@ public class QSyntax extends Syntax
     }
 
 
+    // Below is a temporary code to build q syntax test case - see qsyntax.csv
     private static Map<Integer, List<Entry>> entryMap = new HashMap<>();
     static {
         for(Entry entry: entries) {
