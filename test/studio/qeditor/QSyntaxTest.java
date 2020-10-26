@@ -36,10 +36,14 @@ public class QSyntaxTest {
 
     private void assertSyntax(String text, String... ids) {
         syntax.load(null, text.toCharArray(), 0, text.length(), true, -1);
+        int offset = 0;
         int index = 0;
         for(;;index++) {
             TokenID token =syntax.nextToken();
             if (token == null) break;
+            int oldOffset = offset;
+            offset = syntax.getOffset();
+            if (oldOffset == offset) continue;
             assertTrue(index < ids.length, "Text has more token as expected: " + encode(text));
             assertEquals(ids[index], token.getName(), "Different token: " + encode(text));
         }
