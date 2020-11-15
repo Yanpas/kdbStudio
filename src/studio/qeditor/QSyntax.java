@@ -501,7 +501,7 @@ public class QSyntax extends Syntax
 
     private static List<TokenID> tokens(String buffer) {
         QSyntax syntax = new QSyntax();
-        syntax.load(null, buffer.toCharArray(), 0, buffer.length(), true, -1);
+        syntax.load(null, buffer.toCharArray(), 0, buffer.length(), true, buffer.length());
         List<TokenID> result = new ArrayList<>();
         for(;;) {
             TokenID token = syntax.nextToken();
@@ -520,32 +520,49 @@ public class QSyntax extends Syntax
         System.out.println(str.toString());
     }
 
+    private static Set<Character> initChars = new HashSet<>();
+    static {
+        char[][] charArrays = new char[][] {whitespace, brackets, operators, delimiters, digits, a2z, A2Z};
+        for(char[] array:charArrays) {
+            for(char c:array) {
+                initChars.add(c);
+            }
+        }
+    }
+
     private static void walkStates(int state, Set<Integer> passedStates, String buffer, Character current) {
+        List<Character> chars = new ArrayList<>(initChars);
+
         List<Entry> entries = entryMap.get(state);
         if (entries == null) return;
         for (Entry entry: entries) {
             if (current != null && entry.chars.length > 0 && new String(entry.chars).indexOf(current)==-1) {
                 continue;
             }
-            String newBuffer = buffer + (entry.chars.length > 0 ? (current == null ? entry.chars[0] : current) : "");
-            Character nextChar = null;
+            for(char c:entry.chars) {
+                chars.remove((Character)c);
+            }
+
+            char nextChar = current == null ? (entry.chars.length>0 ? entry.chars[0] : chars.get(0)) : current;
+
+            String newBuffer = buffer + nextChar;
 
             if (entry.action == ACTION_MATCHANDPUTBACK) {
 //                System.out.println(buffer + " <-- " + entry.tokenID.getName()+ " [putback]");
                 result(buffer);
                 newBuffer = buffer;
-                nextChar = current == null ? (entry.chars.length>0 ? entry.chars[0] : null) : current;
             } else if (entry.action == ACTION_MATCHANDCONSUME) {
 //                System.out.println(newBuffer + " <-- " + entry.tokenID.getName());
-                result(buffer);
+                result(newBuffer);
             } else if (entry.action == ACTION_LOOKSLIKE) {
+                result(newBuffer);
             } else {
                 throw new IllegalStateException("Unknown action: " + entry.action);
             }
 
             if (passedStates.contains(entry.nextState)) continue;
             passedStates.add(entry.nextState);
-            walkStates(entry.nextState, passedStates, newBuffer, nextChar);
+            walkStates(entry.nextState, passedStates, newBuffer, entry.action == ACTION_MATCHANDPUTBACK ? nextChar : null);
             passedStates.remove(entry.nextState);
         }
     }
